@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Super Mario: 8. Sınıf Matematik Macerası</title>
+  <meta name="description" content="8. sınıf kareköklü sayılar ve tam kare ifadeler temalı Super Mario platform oyunu." />
+  <meta property="og:title" content="Super Mario: 8. Sınıf Matematik Macerası" />
+  <meta property="og:description" content="8. sınıf kareköklü sayılar ve tam kare ifadeler temalı Super Mario platform oyunu." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Rubik:wght@500;600;700;800;900&display=swap&subset=latin,latin-ext" rel="stylesheet">
+  <style>
+    :root {
+      --mario-red: #e52521;
+      --mario-blue: #0028e0;
+      --mario-yellow: #fcd116;
+      --mario-green: #00a800;
+      --mario-sky: #5c94fc;
+      --mario-brick: #b84418;
+      --mario-dark: #1a1a2e;
+      --retro-font: 'Rubik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --ui-font: 'Fredoka', 'Rubik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: #0f111a;
+      color: #fff;
+      font-family: var(--ui-font);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      height: 100%;
+      max-height: 580px;
+      background: var(--mario-sky);
+      border: 4px solid #2d3748;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(92,148,252,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NES Top Bar */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 52px;
+      background: rgba(15, 17, 26, 0.88);
+      backdrop-filter: blur(4px);
+      border-bottom: 3px solid #2d3748;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      font-family: var(--retro-font);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hud-label {
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      color: #fff;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hud-val.score {
+      color: var(--mario-yellow);
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .hud-val.lives {
+      color: #ff3366;
+      font-size: 13px;
+      letter-spacing: 2px;
+    }
+
+    .hud-val.level {
+      color: #38bdf8;
+    }
+
+    .hud-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: #1e293b;
+      border: 2px solid #475569;
+      border-radius: 6px;
+      color: #fff;
+      font-family: var(--ui-font);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon:hover {
+      background: #334155;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+
+    .btn-icon:active {
+      transform: translateY(1px);
+    }
+
+    /* Canvas styling */
+    canvas#game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: default;
+    }
+
+    /* Modal dialogs */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 12, 20, 0.82);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-overlay.hidden {
+      display: none !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .mario-card {
+      width: 100%;
+      max-width: 520px;
+      background: #1e2538;
+      border: 4px solid var(--mario-yellow);
+      border-radius: 16px;
+      padding: 24px 24px 20px 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.8), 0 0 20px rgba(252,209,22,0.35);
+      position: relative;
+      text-align: center;
+    }
+
+    .mario-card::before {
+      content: '';
+      position: absolute;
+      top: 4px; left: 4px; right: 4px; height: 3px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+    }
+
+    .badge-level {
+      display: inline-block;
+      padding: 6px 14px;
+      background: #dc2626;
+      border: 2px solid #fecaca;
+      border-radius: 999px;
+      font-family: var(--retro-font);
+      font-weight: 800;
+      font-size: 12px;
+      color: #fff;
+      margin-bottom: 12px;
+      box-shadow: 0 3px 0 #991b1b;
+      letter-spacing: 0.5px;
+    }
+
+    .question-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .question-expression {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f1422;
+      border: 3px dashed #f59e0b;
+      border-radius: 12px;
+      padding: 12px 28px;
+      margin: 10px auto 18px;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fde047;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .question-desc {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .btn-option {
+      background: #2563eb;
+      color: #fff;
+      border: 3px solid #60a5fa;
+      border-radius: 12px;
+      padding: 16px 12px;
+      font-size: 24px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 0 #1d4ed8;
+      transition: all 0.1s ease;
+      font-family: var(--ui-font);
+      letter-spacing: 0.5px;
+    }
+
+    .btn-option:nth-child(1) { background: #2563eb; border-color: #93c5fd; box-shadow: 0 4px 0 #1d4ed8; }
+    .btn-option:nth-child(2) { background: #16a34a; border-color: #86efac; box-shadow: 0 4px 0 #15803d; }
+    .btn-option:nth-child(3) { background: #d97706; border-color: #fde68a; box-shadow: 0 4px 0 #b45309; }
+    .btn-option:nth-child(4) { background: #9333ea; border-color: #d8b4fe; box-shadow: 0 4px 0 #7e22ce; }
+
+    .btn-option:hover:not(:disabled) {
+      filter: brightness(1.15);
+      transform: translateY(-2px);
+    }
+
+    .btn-option:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+
+    .btn-option.correct {
+      background: #15803d !important;
+      border-color: #4ade80 !important;
+      animation: pulseGreen 0.4s infinite alternate;
+    }
+
+    .btn-option.wrong {
+      background: #b91c1c !important;
+      border-color: #f87171 !important;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes pulseGreen {
+      from { transform: scale(1); }
+      to { transform: scale(1.04); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .feedback-box {
+      min-height: 48px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feedback-box.correct {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+    }
+
+    .feedback-box.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #f87171;
+    }
+
+    /* Start & End Screen Cards */
+    .hero-title {
+      font-family: var(--retro-font);
+      font-weight: 900;
+      font-size: 22px;
+      line-height: 1.4;
+      color: var(--mario-yellow);
+      text-shadow: 2px 2px 0 #b45309, 3px 3px 0 #000;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: #e2e8f0;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .stats-summary {
+      background: #0f1422;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+      display: flex;
+      justify-content: space-around;
+      font-family: var(--retro-font);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-item span:first-child {
+      color: #94a3b8;
+      font-size: 9px;
+    }
+
+    .stat-item span:last-child {
+      color: #fde047;
+      font-size: 13px;
+    }
+
+    .btn-action {
+      background: #16a34a;
+      color: #fff;
+      border: 3px solid #86efac;
+      border-radius: 14px;
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #15803d;
+      transition: all 0.15s;
+      font-family: var(--ui-font);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-action:hover {
+      background: #22c55e;
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 #15803d;
+    }
+
+    .btn-action:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #15803d;
+    }
+
+    .btn-action.red {
+      background: #dc2626;
+      border-color: #fca5a5;
+      box-shadow: 0 5px 0 #991b1b;
+    }
+    .btn-action.red:hover {
+      background: #ef4444;
+      box-shadow: 0 7px 0 #991b1b;
+    }
+
+    /* Onscreen touch controls (Mobile / Tablet) */
+    #touch-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .touch-btn-group {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .touch-btn {
+      width: 58px;
+      height: 58px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      backdrop-filter: blur(4px);
+      transition: background 0.1s;
+    }
+
+    .touch-btn:active {
+      background: rgba(220, 38, 38, 0.85);
+      border-color: #fff;
+      transform: scale(0.94);
+    }
+
+    .touch-btn.jump-btn {
+      width: 76px;
+      border-radius: 20px;
+      background: rgba(220, 38, 38, 0.75);
+      border-color: #fca5a5;
+      font-family: var(--retro-font);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    /* Instructions banner */
+    .controls-hint {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #cbd5e1;
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 640px) {
+      #hud {
+        padding: 0 8px;
+        font-size: 9px;
+      }
+      .hud-label {
+        font-size: 7px;
+      }
+      .hud-val.lives {
+        font-size: 10px;
+      }
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .question-expression {
+        font-size: 24px;
+        padding: 8px 16px;
+      }
+      .controls-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <!-- Top HUD -->
+    <div id="hud">
+      <div class="hud-stat">
+        <span class="hud-label">OYUNCU</span>
+        <span class="hud-val">MARIO</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">PUAN</span>
+        <span class="hud-val score" id="hud-score">⭐ 0000</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">CAN</span>
+        <span class="hud-val lives" id="hud-lives">❤️❤️❤️</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">BÖLÜM</span>
+        <span class="hud-val level" id="hud-level">DÜNYA 1-1</span>
+      </div>
+      <div class="hud-buttons">
+        <button class="btn-icon" id="btn-sound" title="Sesi Aç/Kapat">🔊</button>
+        <button class="btn-icon" id="btn-download" title="Tek Parça HTML Dosyası Olarak İndir">💾 İndir</button>
+      </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="game-canvas" width="960" height="528"></canvas>
+
+    <!-- Controls tip -->
+    <div class="controls-hint">
+      🎮 [A/D] veya [◀ ▶] Sağa/Sola Hareket | [SPACE], [W] veya [▲] Zıpla
+    </div>
+
+    <!-- Touch Controls for Mobile / Tablets -->
+    <div id="touch-controls">
+      <div class="touch-btn-group">
+        <button class="touch-btn" id="t-left">◀</button>
+        <button class="touch-btn" id="t-right">▶</button>
+      </div>
+      <div class="touch-btn-group">
+        <button class="touch-btn jump-btn" id="t-jump">ZIPLA</button>
+      </div>
+    </div>
+
+    <!-- Math Question Modal -->
+    <div class="modal-overlay hidden" id="question-modal">
+      <div class="mario-card">
+        <div class="badge-level" id="modal-level-badge">1. BÖLÜM: TAM KARE SAYILAR</div>
+        <h2 class="question-title" id="modal-title">Soru Bloğuna Vurdun!</h2>
+        <div class="question-expression" id="modal-math">√144 = ?</div>
+        <p class="question-desc" id="modal-prompt">Yukarıdaki ifadenin eşitini seç:</p>
+
+        <div class="options-grid" id="options-container">
+          <!-- 4 option buttons will be rendered dynamically -->
+        </div>
+
+        <div class="feedback-box hidden" id="modal-feedback"></div>
+      </div>
+    </div>
+
+    <!-- Level Complete / Next Level Modal -->
+    <div class="modal-overlay hidden" id="level-complete-modal">
+      <div class="mario-card">
+        <div class="badge-level" style="background:#15803d; border-color:#86efac;">BÖLÜM TAMAMLANDI! 🎉</div>
+        <h2 class="hero-title">TEBRİKLER! BORUYA ULAŞTIN!</h2>
+        <p class="hero-sub">
+          1. Bölümü başarıyla bitirdin! Şimdi 2. Bölümde <b>tam kare olmayan kareköklü ifadeleri a√b şeklinde çıkarma</b> zamanı. Prenses Peach kalenin önünde seni bekliyor!
+        </p>
+        <div class="stats-summary">
+          <div class="stat-item">
+            <span>ŞU ANKİ PUAN</span>
+            <span id="lvl-score">0</span>
+          </div>
+          <div class="stat-item">
+            <span>KALAN CAN</span>
+            <span id="lvl-lives">❤️❤️❤️</span>
+          </div>
+          <div class="stat-item">
+            <span>HEDEF</span>
+            <span>1000+ ⭐</span>
+          </div>
+        </div>
+        <button class="btn-action" id="btn-next-level">2. BÖLÜME GEÇ 🚀</button>
+      </div>
+    </div>
+
+    <!-- Victory Modal (Princess Rescued!) -->
+    <div class="modal-overlay hidden" id="victory-modal">
+      <div class="mario-card" style="border-color:#f43f5e; box-shadow: 0 10px 40px rgba(244,63,94,0.4);">
+        <div style="font-size: 54px; margin-bottom: 8px;">👑👸🎉</div>
+        <h2 class="hero-title" style="color:#f43f5e; font-size: 16px;">TEBRİKLER! PRENSESİ KURTARDIN VE MATEMATİK KAHRAMANI OLDUN! 👑🎉</h2>
+        <p class="hero-sub" style="font-size: 14px;">
+          Kareköklü sayıların gizemini çözdün, 1000 barajını aştın ve Prenses Peach'i Bowser'ın kalesinden kurtardın!
+        </p>
+        <div class="stats-summary">
+          <div class="stat-item">
+            <span>TOPLAM PUAN</span>
+            <span id="vic-score">0</span>
+          </div>
+          <div class="stat-item">
+            <span>DOĞRU CEVAP</span>
+            <span id="vic-correct">0</span>
+          </div>
+          <div class="stat-item">
+            <span>BAŞARI</span>
+            <span id="vic-percent">%100</span>
+          </div>
+        </div>
+        <button class="btn-action" id="btn-restart-victory">YENİDEN OYNA 🎮</button>
+      </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal-overlay hidden" id="gameover-modal">
+      <div class="mario-card" style="border-color:#ef4444; box-shadow: 0 10px 40px rgba(239,68,68,0.4);">
+        <div style="font-size: 50px; margin-bottom: 8px;">💀💔</div>
+        <h2 class="hero-title" style="color:#ef4444; font-size: 17px;" id="gameover-title">Game Over - Prensesi Kurtarmak İçin Tekrar Dene!</h2>
+        <p class="hero-sub" id="gameover-msg">
+          Prensesi kurtarabilmek için en az 1000 puan toplamalı ve canlarını iyi korumalısın. Matematik gücünü topla ve yeniden dene!
+        </p>
+        <div class="stats-summary">
+          <div class="stat-item">
+            <span>TOPLANAN PUAN</span>
+            <span id="gov-score">0</span>
+          </div>
+          <div class="stat-item">
+            <span>GEREKEN PUAN</span>
+            <span>1000 ⭐</span>
+          </div>
+        </div>
+        <button class="btn-action red" id="btn-restart-gameover">YENİDEN BAŞLA 🔄</button>
+      </div>
+    </div>
+
+    <!-- Welcome / Start Modal -->
+    <div class="modal-overlay" id="start-modal">
+      <div class="mario-card">
+        <div style="font-size: 44px; margin-bottom: 8px;">🍄 ⭐ 🏰</div>
+        <h1 class="hero-title">SUPER MARIO<br>8. SINIF MATEMATİK</h1>
+        <p class="hero-sub">
+          Prenses Peach kaçırıldı! Onu kurtarmak için soru bloklarına alttan kafayla vur, 8. sınıf karekök sorularını doğru cevapla ve <b>en az 1000 puan</b> toplayıp kaleye ulaş!
+        </p>
+        <div style="text-align: left; background:#0f1422; padding:12px 16px; border-radius:10px; margin-bottom:16px; font-size:13px; line-height:1.5;">
+          <div style="color:#fde047; font-weight:700; margin-bottom:4px;">🎯 Bölüm Kuralları:</div>
+          <div>• <b>1. Bölüm:</b> 1'den 30'a kadar Tam Kare Sayılar (+100 Puan)</div>
+          <div>• <b>2. Bölüm:</b> a√b Biçiminde Kök Dışına Çıkarma (+150 Puan)</div>
+          <div>• <b>Can:</b> 3 canın var. Yanlış cevapta 1 can kaybedersin!</div>
+        </div>
+        <button class="btn-action" id="btn-start-game">OYUNA BAŞLA ▶</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /**
+     * SUPER MARIO: 8. Sınıf Matematik Macerası
+     * Self-contained HTML5 Canvas Game with Web Audio API Synthesizer
+     */
+
+    // --- SES MOTORU (Web Audio API) ---
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playJump() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        const now = this.ctx.currentTime;
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(540, now + 0.16);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.16);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+      }
+
+      playBump() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        const now = this.ctx.currentTime;
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.1);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+      }
+
+      playCoin() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [987.77, 1318.51].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          gain.gain.setValueAtTime(0.2, now + i * 0.08);
+          gain.gain.linearRampToValueAtTime(0.01, now + (i + 1) * 0.08 + 0.15);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + (i + 1) * 0.08 + 0.16);
+        });
+      }
+
+      playCorrect() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.09);
+          gain.gain.setValueAtTime(0.22, now + i * 0.09);
+          gain.gain.linearRampToValueAtTime(0.01, now + i * 0.09 + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.09);
+          osc.stop(now + i * 0.09 + 0.25);
+        });
+      }
+
+      playWrong() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(170, now);
+        osc.frequency.linearRampToValueAtTime(90, now + 0.35);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.36);
+      }
+
+      playStomp() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.12);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.13);
+      }
+
+      playFanfare() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 523, d: 0.12, t: 0 },
+          { f: 659, d: 0.12, t: 0.12 },
+          { f: 784, d: 0.12, t: 0.24 },
+          { f: 1046, d: 0.3, t: 0.36 },
+          { f: 880, d: 0.15, t: 0.68 },
+          { f: 1046, d: 0.5, t: 0.85 }
+        ];
+        notes.forEach(n => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+          gain.gain.setValueAtTime(0.18, now + n.t);
+          gain.gain.linearRampToValueAtTime(0.01, now + n.t + n.d);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d + 0.05);
+        });
+      }
+    }
+
+    const sound = new SoundFX();
+
+    // --- YARDIMCI DİZİ KARIŞTIRMA (SHUFFLE) FONKSİYONU ---
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // --- 8. SINIF MATEMATİK SORU BANKASI ---
+    // 1. Bölüm: 1'den 30'a kadar Tam Kare Sayılar ve Karekökleri (Her oynanışta rastgele sayılar seçilir)
+    function generateLevel1Question(n) {
+      const square = n * n;
+      const correct = n.toString();
+
+      // Gerçekçi ve çeldirici seçenekler üret
+      const distractors = new Set();
+      if (n > 1) distractors.add((n - 1).toString());
+      if (n < 30) distractors.add((n + 1).toString());
+      if (n > 2) distractors.add((n - 2).toString());
+      if (n < 29) distractors.add((n + 2).toString());
+
+      // Yaygın öğrenci hataları (örneğin 2'ye bölme veya 10 ekleme)
+      if (square % 2 === 0 && Math.floor(square / 2) !== n && Math.floor(square / 2) < 60) {
+        distractors.add(Math.floor(square / 2).toString());
+      }
+      if (n + 10 <= 35) distractors.add((n + 10).toString());
+      if (n - 10 >= 1) distractors.add((n - 10).toString());
+
+      const validDistractors = shuffleArray(
+        Array.from(distractors).filter(x => x !== correct && parseInt(x) > 0)
+      );
+
+      const chosenDistractors = validDistractors.slice(0, 3);
+      while (chosenDistractors.length < 3) {
+        const delta = (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 3);
+        const candidate = Math.max(1, n + delta).toString();
+        if (candidate !== correct && !chosenDistractors.includes(candidate)) {
+          chosenDistractors.push(candidate);
+        }
+      }
+
+      // Şıkları karıştır (1, 2, 3, 4 sırası her seferinde farklı olsun)
+      const options = shuffleArray([correct, ...chosenDistractors]);
+
+      return {
+        level: 1,
+        title: "1. BÖLÜM: TAM KARE SAYILAR",
+        math: `√${square} = ?`,
+        prompt: `√${square} kareköklü ifadesinin değeri kaçtır?`,
+        correctOption: correct,
+        options: options,
+        explanation: `Doğru! ${n} × ${n} = ${square} (${n}²) olduğu için √${square} = ${n} olur.`
+      };
+    }
+
+    // 2. Bölüm: Tam Kare Olmayan Sayıları a√b Biçiminde Kök Dışına Çıkarma (Genişletilmiş Havuz)
+    const level2QuestionsPool = [
+      { sq: 8, a: 2, b: 2, exp: "8 = 4 × 2 = 2² × 2" },
+      { sq: 12, a: 2, b: 3, exp: "12 = 4 × 3 = 2² × 3" },
+      { sq: 18, a: 3, b: 2, exp: "18 = 9 × 2 = 3² × 2" },
+      { sq: 20, a: 2, b: 5, exp: "20 = 4 × 5 = 2² × 5" },
+      { sq: 24, a: 2, b: 6, exp: "24 = 4 × 6 = 2² × 6" },
+      { sq: 27, a: 3, b: 3, exp: "27 = 9 × 3 = 3² × 3" },
+      { sq: 28, a: 2, b: 7, exp: "28 = 4 × 7 = 2² × 7" },
+      { sq: 32, a: 4, b: 2, exp: "32 = 16 × 2 = 4² × 2" },
+      { sq: 40, a: 2, b: 10, exp: "40 = 4 × 10 = 2² × 10" },
+      { sq: 44, a: 2, b: 11, exp: "44 = 4 × 11 = 2² × 11" },
+      { sq: 45, a: 3, b: 5, exp: "45 = 9 × 5 = 3² × 5" },
+      { sq: 48, a: 4, b: 3, exp: "48 = 16 × 3 = 4² × 3" },
+      { sq: 50, a: 5, b: 2, exp: "50 = 25 × 2 = 5² × 2" },
+      { sq: 54, a: 3, b: 6, exp: "54 = 9 × 6 = 3² × 6" },
+      { sq: 60, a: 2, b: 15, exp: "60 = 4 × 15 = 2² × 15" },
+      { sq: 63, a: 3, b: 7, exp: "63 = 9 × 7 = 3² × 7" },
+      { sq: 72, a: 6, b: 2, exp: "72 = 36 × 2 = 6² × 2" },
+      { sq: 75, a: 5, b: 3, exp: "75 = 25 × 3 = 5² × 3" },
+      { sq: 80, a: 4, b: 5, exp: "80 = 16 × 5 = 4² × 5" },
+      { sq: 90, a: 3, b: 10, exp: "90 = 9 × 10 = 3² × 10" },
+      { sq: 96, a: 4, b: 6, exp: "96 = 16 × 6 = 4² × 6" },
+      { sq: 98, a: 7, b: 2, exp: "98 = 49 × 2 = 7² × 2" },
+      { sq: 99, a: 3, b: 11, exp: "99 = 9 × 11 = 3² × 11" },
+      { sq: 108, a: 6, b: 3, exp: "108 = 36 × 3 = 6² × 3" },
+      { sq: 112, a: 4, b: 7, exp: "112 = 16 × 7 = 4² × 7" },
+      { sq: 125, a: 5, b: 5, exp: "125 = 25 × 5 = 5² × 5" },
+      { sq: 128, a: 8, b: 2, exp: "128 = 64 × 2 = 8² × 2" },
+      { sq: 147, a: 7, b: 3, exp: "147 = 49 × 3 = 7² × 3" },
+      { sq: 150, a: 5, b: 6, exp: "150 = 25 × 6 = 5² × 6" },
+      { sq: 162, a: 9, b: 2, exp: "162 = 81 × 2 = 9² × 2" },
+      { sq: 180, a: 6, b: 5, exp: "180 = 36 × 5 = 6² × 5" },
+      { sq: 200, a: 10, b: 2, exp: "200 = 100 × 2 = 10² × 2" },
+      { sq: 242, a: 11, b: 2, exp: "242 = 121 × 2 = 11² × 2" },
+      { sq: 288, a: 12, b: 2, exp: "288 = 144 × 2 = 12² × 2" },
+      { sq: 300, a: 10, b: 3, exp: "300 = 100 × 3 = 10² × 3" }
+    ];
+
+    function generateLevel2Question(item) {
+      const correct = `${item.a}√${item.b}`;
+
+      // Çeldiriciler
+      const distSet = new Set();
+      if (item.a !== item.b) distSet.add(`${item.b}√${item.a}`);
+      if (item.a > 2 && item.a % 2 === 0) {
+        distSet.add(`${item.a / 2}√${item.b * 4}`);
+      }
+      distSet.add(`${item.a + 1}√${item.b}`);
+      if (item.a > 1) distSet.add(`${item.a - 1}√${item.b}`);
+      distSet.add(`${item.a}√${item.b + 1}`);
+      if (item.b > 2) distSet.add(`${item.a}√${item.b - 1}`);
+
+      const filtered = shuffleArray(
+        Array.from(distSet).filter(x => x !== correct && !x.includes('NaN'))
+      );
+
+      const chosenDistractors = filtered.slice(0, 3);
+      while (chosenDistractors.length < 3) {
+        chosenDistractors.push(`${item.a + chosenDistractors.length + 1}√${item.b}`);
+      }
+
+      const options = shuffleArray([correct, ...chosenDistractors]);
+
+      return {
+        level: 2,
+        title: "2. BÖLÜM: a√b BİÇİMİNDE KÖK DIŞINA ÇIKARMA",
+        math: `√${item.sq} = ?`,
+        prompt: `√${item.sq} ifadesinin en sade a√b biçimindeki eşiti nedir?`,
+        correctOption: correct,
+        options: options,
+        explanation: `Doğru! ${item.exp} olduğundan √${item.sq} = ${item.a}√${item.b} olur.`
+      };
+    }
+
+    // --- OYUN DEĞİŞKENLERİ VE CANVAS YÖNETİMİ ---
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    const STATE = {
+      score: 0,
+      lives: 3,
+      currentLevel: 1,
+      paused: true,
+      inQuestion: false,
+      correctCount: 0,
+      totalAnswered: 0,
+      gameOver: false,
+      won: false
+    };
+
+    // Camera
+    const camera = {
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height
+    };
+
+    // Mario Character
+    const mario = {
+      x: 60,
+      y: 360,
+      w: 30,
+      h: 38,
+      vx: 0,
+      vy: 0,
+      speed: 4.6,
+      jumpForce: -12.5,
+      grounded: false,
+      facing: 'right',
+      invulnerableTimer: 0,
+      walkFrame: 0,
+      walkTimer: 0,
+      isBumping: false,
+      celebrating: false
+    };
+
+    // Key inputs
+    const keys = {
+      left: false,
+      right: false,
+      up: false
+    };
+
+    // Particles & Popups
+    let particles = [];
+    let scorePopups = [];
+
+    // Entities in Level
+    let blocks = []; // bricks and '?' blocks
+    let pipes = [];
+    let goombas = [];
+    let scenery = [];
+    let flagPole = null;
+    let castle = null;
+    let princess = null;
+    let levelWidth = 3400;
+
+    // --- SEVİYE OLUŞTURUCU ---
+    function buildLevel(lvlNum) {
+      blocks = [];
+      pipes = [];
+      goombas = [];
+      scenery = [];
+      particles = [];
+      scorePopups = [];
+      levelWidth = 3300;
+
+      // Ground height
+      const groundY = 430;
+
+      // Scenery: Hills, bushes, clouds
+      for (let x = 80; x < levelWidth; x += 360) {
+        scenery.push({ type: 'cloud', x: x + Math.random() * 80, y: 50 + Math.random() * 70, scale: 0.8 + Math.random() * 0.5 });
+        scenery.push({ type: 'hill', x: x + 60, y: groundY, w: 140, h: 65 });
+        scenery.push({ type: 'bush', x: x + 220, y: groundY - 20, w: 60, h: 22 });
+      }
+
+      if (lvlNum === 1) {
+        // LEVEL 1: TAM KARE SAYILAR (1 - 30)
+        // 9 Soru Bloğu konumu
+        const qPositions = [
+          { x: 300, y: 310 },
+          { x: 440, y: 310 },
+          { x: 700, y: 310 },
+          { x: 920, y: 230 },
+          { x: 1220, y: 310 },
+          { x: 1460, y: 230 },
+          { x: 1780, y: 310 },
+          { x: 2150, y: 310 },
+          { x: 2460, y: 230 }
+        ];
+
+        // 1'den 30'a kadar olan sayılardan her yeni oyunda rastgele 9 farklı sayı seçilir
+        const availableL1 = Array.from({ length: 30 }, (_, i) => i + 1);
+        const randomL1Numbers = shuffleArray(availableL1).slice(0, qPositions.length);
+
+        qPositions.forEach((pos, idx) => {
+          blocks.push({
+            x: pos.x,
+            y: pos.y,
+            w: 36,
+            h: 36,
+            type: 'question',
+            solved: false,
+            bumpY: 0,
+            questionData: generateLevel1Question(randomL1Numbers[idx])
+          });
+        });
+
+        // Add classic Mario brick blocks around
+        const brickPositions = [
+          { x: 264, y: 310 }, { x: 336, y: 310 },
+          { x: 664, y: 310 }, { x: 736, y: 310 },
+          { x: 884, y: 230 }, { x: 956, y: 230 },
+          { x: 1184, y: 310 }, { x: 1256, y: 310 },
+          { x: 1424, y: 230 }, { x: 1496, y: 230 },
+          { x: 1744, y: 310 }, { x: 1816, y: 310 },
+          { x: 2114, y: 310 }, { x: 2186, y: 310 },
+          { x: 2424, y: 230 }, { x: 2496, y: 230 },
+        ];
+        brickPositions.forEach(b => {
+          blocks.push({
+            x: b.x,
+            y: b.y,
+            w: 36,
+            h: 36,
+            type: 'brick',
+            bumpY: 0
+          });
+        });
+
+        // Green pipes
+        pipes.push({ x: 540, y: 350, w: 54, h: 80 });
+        pipes.push({ x: 1040, y: 330, w: 54, h: 100 });
+        pipes.push({ x: 1600, y: 350, w: 54, h: 80 });
+        pipes.push({ x: 1980, y: 320, w: 54, h: 110 });
+        pipes.push({ x: 2320, y: 340, w: 54, h: 90 });
+
+        // End of Level 1: Flagpole and pipe transition
+        flagPole = { x: 2850, y: 150, h: 280, flagY: 160, reached: false };
+        pipes.push({ x: 2980, y: 340, w: 60, h: 90, isExit: true });
+
+        // Goombas
+        goombas = [
+          { x: 420, y: 398, w: 30, h: 32, vx: -1.2, alive: true, squishTimer: 0 },
+          { x: 800, y: 398, w: 30, h: 32, vx: 1.2, alive: true, squishTimer: 0 },
+          { x: 1350, y: 398, w: 30, h: 32, vx: -1.2, alive: true, squishTimer: 0 },
+          { x: 1860, y: 398, w: 30, h: 32, vx: -1.2, alive: true, squishTimer: 0 },
+          { x: 2240, y: 398, w: 30, h: 32, vx: 1.2, alive: true, squishTimer: 0 }
+        ];
+
+      } else {
+        // LEVEL 2: a√b BİÇİMİNDE KÖK DIŞINA ÇIKARMA
+        // Her yeni oyunda havuzdan rastgele 9 farklı kareköklü soru seçilir
+        const qPositionsL2 = [
+          { x: 300, y: 310 },
+          { x: 480, y: 310 },
+          { x: 740, y: 230 },
+          { x: 980, y: 310 },
+          { x: 1260, y: 310 },
+          { x: 1520, y: 230 },
+          { x: 1800, y: 310 },
+          { x: 2120, y: 230 },
+          { x: 2420, y: 310 }
+        ];
+
+        const randomL2Pool = shuffleArray(level2QuestionsPool).slice(0, qPositionsL2.length);
+
+        qPositionsL2.forEach((pos, idx) => {
+          blocks.push({
+            x: pos.x,
+            y: pos.y,
+            w: 36,
+            h: 36,
+            type: 'question',
+            solved: false,
+            bumpY: 0,
+            questionData: generateLevel2Question(randomL2Pool[idx])
+          });
+        });
+
+        // Brick steps / pyramids
+        const brickPositionsL2 = [
+          { x: 264, y: 310 }, { x: 336, y: 310 },
+          { x: 444, y: 310 }, { x: 516, y: 310 },
+          { x: 704, y: 230 }, { x: 776, y: 230 },
+          { x: 944, y: 310 }, { x: 1016, y: 310 },
+          { x: 1224, y: 310 }, { x: 1296, y: 310 },
+          { x: 1484, y: 230 }, { x: 1556, y: 230 },
+          { x: 1764, y: 310 }, { x: 1836, y: 310 },
+          { x: 2084, y: 230 }, { x: 2156, y: 230 },
+          { x: 2384, y: 310 }, { x: 2456, y: 310 },
+          // Stepped blocks before castle
+          { x: 2600, y: 394 }, { x: 2636, y: 394 }, { x: 2636, y: 358 },
+          { x: 2672, y: 394 }, { x: 2672, y: 358 }, { x: 2672, y: 322 },
+        ];
+        brickPositionsL2.forEach(b => {
+          blocks.push({
+            x: b.x,
+            y: b.y,
+            w: 36,
+            h: 36,
+            type: 'brick',
+            bumpY: 0
+          });
+        });
+
+        // Pipes
+        pipes.push({ x: 600, y: 340, w: 54, h: 90 });
+        pipes.push({ x: 1120, y: 320, w: 54, h: 110 });
+        pipes.push({ x: 1640, y: 350, w: 54, h: 80 });
+        pipes.push({ x: 1940, y: 330, w: 54, h: 100 });
+        pipes.push({ x: 2280, y: 340, w: 54, h: 90 });
+
+        // End of Level 2: Castle and Princess Peach!
+        castle = { x: 2900, y: 220, w: 180, h: 210 };
+        princess = { x: 2840, y: 382, w: 28, h: 48, rescued: false, heartAnim: 0 };
+        flagPole = null;
+
+        // Goombas
+        goombas = [
+          { x: 400, y: 398, w: 30, h: 32, vx: -1.3, alive: true, squishTimer: 0 },
+          { x: 860, y: 398, w: 30, h: 32, vx: 1.3, alive: true, squishTimer: 0 },
+          { x: 1400, y: 398, w: 30, h: 32, vx: -1.3, alive: true, squishTimer: 0 },
+          { x: 1720, y: 398, w: 30, h: 32, vx: 1.3, alive: true, squishTimer: 0 },
+          { x: 2200, y: 398, w: 30, h: 32, vx: -1.3, alive: true, squishTimer: 0 },
+          { x: 2520, y: 398, w: 30, h: 32, vx: -1.3, alive: true, squishTimer: 0 }
+        ];
+      }
+
+      // Reset Mario
+      mario.x = 60;
+      mario.y = 360;
+      mario.vx = 0;
+      mario.vy = 0;
+      mario.grounded = false;
+      mario.celebrating = false;
+      camera.x = 0;
+
+      updateHUD();
+    }
+
+    // --- HUD GÜNCELLEME ---
+    function updateHUD() {
+      document.getElementById('hud-score').textContent = `⭐ ${String(STATE.score).padStart(4, '0')}`;
+      const hearts = '❤️'.repeat(Math.max(0, STATE.lives)) + '🖤'.repeat(Math.max(0, 3 - STATE.lives));
+      document.getElementById('hud-lives').textContent = hearts;
+      document.getElementById('hud-level').textContent = STATE.currentLevel === 1 ? 'DÜNYA 1-1 (Tam Kare)' : 'DÜNYA 1-2 (a√b Çıkarma)';
+    }
+
+    // --- GÖRSEL ÇİZİM METOTLARI (PIXEL ART ENGINE) ---
+    // Ground
+    function drawGround() {
+      const groundY = 430;
+      ctx.fillStyle = '#00a800'; // Grass top
+      ctx.fillRect(0, groundY, canvas.width, 14);
+
+      // Dark grass line
+      ctx.fillStyle = '#005c00';
+      ctx.fillRect(0, groundY + 12, canvas.width, 3);
+
+      // Dirt bottom
+      ctx.fillStyle = '#c84c0c';
+      ctx.fillRect(0, groundY + 15, canvas.width, canvas.height - groundY - 15);
+
+      // Dirt pixel texture
+      ctx.fillStyle = '#802800';
+      const offset = (Math.floor(camera.x) % 32);
+      for (let x = -offset; x < canvas.width; x += 32) {
+        for (let y = groundY + 22; y < canvas.height; y += 24) {
+          ctx.fillRect(x + 4, y, 6, 6);
+          ctx.fillRect(x + 18, y + 10, 8, 5);
+        }
+      }
+    }
+
+    // Scenery: Cloud, Hill, Bush
+    function drawScenery() {
+      scenery.forEach(item => {
+        const screenX = item.x - camera.x;
+        if (screenX < -200 || screenX > canvas.width + 200) return;
+
+        if (item.type === 'cloud') {
+          ctx.save();
+          ctx.translate(screenX, item.y);
+          ctx.scale(item.scale, item.scale);
+          ctx.fillStyle = '#ffffff';
+          // 3 circles cloud
+          ctx.beginPath();
+          ctx.arc(30, 25, 20, 0, Math.PI * 2);
+          ctx.arc(55, 18, 25, 0, Math.PI * 2);
+          ctx.arc(80, 25, 20, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(25, 25, 60, 18);
+          // Eyes for Mario cloud
+          ctx.fillStyle = '#000';
+          ctx.fillRect(48, 22, 3, 6);
+          ctx.fillRect(62, 22, 3, 6);
+          ctx.restore();
+        } else if (item.type === 'hill') {
+          ctx.fillStyle = '#00a800';
+          ctx.strokeStyle = '#005c00';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(screenX + item.w / 2, item.y, item.w / 2, item.h, 0, Math.PI, 0);
+          ctx.fill();
+          ctx.stroke();
+          // Hill spots
+          ctx.fillStyle = '#005c00';
+          ctx.beginPath();
+          ctx.arc(screenX + item.w / 2, item.y - item.h * 0.5, 6, 0, Math.PI * 2);
+          ctx.arc(screenX + item.w * 0.35, item.y - item.h * 0.3, 4, 0, Math.PI * 2);
+          ctx.arc(screenX + item.w * 0.65, item.y - item.h * 0.3, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (item.type === 'bush') {
+          ctx.fillStyle = '#00a800';
+          ctx.beginPath();
+          ctx.arc(screenX + 15, item.y + 10, 14, 0, Math.PI * 2);
+          ctx.arc(screenX + 30, item.y + 6, 17, 0, Math.PI * 2);
+          ctx.arc(screenX + 45, item.y + 10, 14, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // Question Block & Bricks
+    function drawBlocks() {
+      const now = performance.now();
+      blocks.forEach(b => {
+        const screenX = b.x - camera.x;
+        if (screenX < -50 || screenX > canvas.width + 50) return;
+        const curY = b.y + (b.bumpY || 0);
+
+        if (b.type === 'question') {
+          if (!b.solved) {
+            // Glowing pulsing Question Block
+            ctx.fillStyle = '#fc9838'; // NES Mario orange/gold
+            ctx.fillRect(screenX, curY, b.w, b.h);
+
+            // Highlights and borders
+            ctx.fillStyle = '#fce4a0';
+            ctx.fillRect(screenX, curY, b.w, 4);
+            ctx.fillRect(screenX, curY, 4, b.h);
+
+            ctx.fillStyle = '#a84000';
+            ctx.fillRect(screenX, curY + b.h - 4, b.w, 4);
+            ctx.fillRect(screenX + b.w - 4, curY, 4, b.h);
+
+            // 4 corner bolts
+            ctx.fillStyle = '#5c2000';
+            ctx.fillRect(screenX + 5, curY + 5, 3, 3);
+            ctx.fillRect(screenX + b.w - 8, curY + 5, 3, 3);
+            ctx.fillRect(screenX + 5, curY + b.h - 8, 3, 3);
+            ctx.fillRect(screenX + b.w - 8, curY + b.h - 8, 3, 3);
+
+            // Question mark '?'
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px "Rubik", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const pulse = Math.sin(now * 0.006) * 1.5;
+            ctx.fillText('?', screenX + b.w / 2, curY + b.h / 2 + 1 + pulse);
+
+            // Text shadow
+            ctx.fillStyle = '#802800';
+            ctx.fillText('?', screenX + b.w / 2 + 1.5, curY + b.h / 2 + 2.5 + pulse);
+          } else {
+            // Inactive metal empty block
+            ctx.fillStyle = '#b87431';
+            ctx.fillRect(screenX, curY, b.w, b.h);
+            ctx.fillStyle = '#804818';
+            ctx.fillRect(screenX, curY + b.h - 3, b.w, 3);
+            ctx.fillRect(screenX + b.w - 3, curY, 3, b.h);
+            ctx.fillStyle = '#e8a860';
+            ctx.fillRect(screenX, curY, b.w, 3);
+            ctx.fillRect(screenX, curY, 3, b.h);
+
+            // 4 bolts
+            ctx.fillStyle = '#402008';
+            ctx.fillRect(screenX + 4, curY + 4, 3, 3);
+            ctx.fillRect(screenX + b.w - 7, curY + 4, 3, 3);
+            ctx.fillRect(screenX + 4, curY + b.h - 7, 3, 3);
+            ctx.fillRect(screenX + b.w - 7, curY + b.h - 7, 3, 3);
+          }
+        } else if (b.type === 'brick') {
+          // Brick Block
+          ctx.fillStyle = '#b84418';
+          ctx.fillRect(screenX, curY, b.w, b.h);
+
+          // Dark mortar grooves
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(screenX, curY + 11, b.w, 2);
+          ctx.fillRect(screenX, curY + 23, b.w, 2);
+
+          ctx.fillRect(screenX + 17, curY, 2, 11);
+          ctx.fillRect(screenX + 8, curY + 12, 2, 11);
+          ctx.fillRect(screenX + 26, curY + 12, 2, 11);
+          ctx.fillRect(screenX + 17, curY + 24, 2, 12);
+
+          // Highlight
+          ctx.fillStyle = '#e87848';
+          ctx.fillRect(screenX, curY, b.w, 2);
+          ctx.fillRect(screenX, curY, 2, b.h);
+        }
+      });
+    }
+
+    // Green Pipes
+    function drawPipes() {
+      pipes.forEach(p => {
+        const screenX = p.x - camera.x;
+        if (screenX < -100 || screenX > canvas.width + 100) return;
+
+        // Pipe Body
+        ctx.fillStyle = '#00a800';
+        ctx.fillRect(screenX + 4, p.y + 24, p.w - 8, p.h - 24);
+
+        // Pipe Body Highlight & Shadow
+        ctx.fillStyle = '#5cf43e';
+        ctx.fillRect(screenX + 8, p.y + 24, 6, p.h - 24);
+        ctx.fillStyle = '#005c00';
+        ctx.fillRect(screenX + p.w - 12, p.y + 24, 8, p.h - 24);
+
+        // Pipe Lip (top rim)
+        ctx.fillStyle = '#00a800';
+        ctx.fillRect(screenX, p.y, p.w, 24);
+        ctx.fillStyle = '#5cf43e';
+        ctx.fillRect(screenX + 4, p.y + 2, 6, 20);
+        ctx.fillStyle = '#005c00';
+        ctx.fillRect(screenX + p.w - 6, p.y, 6, 24);
+
+        // Black outline
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(screenX, p.y, p.w, 24);
+        ctx.strokeRect(screenX + 4, p.y + 24, p.w - 8, p.h - 24);
+
+        if (p.isExit) {
+          // Arrow pointing down for exit pipe
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 13px "Rubik", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('▼ GİR', screenX + p.w / 2, p.y - 10);
+        }
+      });
+    }
+
+    // Flagpole (Level 1 finish)
+    function drawFlagPole() {
+      if (!flagPole) return;
+      const screenX = flagPole.x - camera.x;
+
+      // Base
+      ctx.fillStyle = '#00a800';
+      ctx.fillRect(screenX - 12, 400, 32, 30);
+      ctx.strokeRect(screenX - 12, 400, 32, 30);
+
+      // Pole
+      ctx.fillStyle = '#d1d5db';
+      ctx.fillRect(screenX, flagPole.y, 8, flagPole.h);
+      ctx.fillStyle = '#fcd116';
+      ctx.beginPath();
+      ctx.arc(screenX + 4, flagPole.y - 4, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Flag
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.moveTo(screenX, flagPole.flagY);
+      ctx.lineTo(screenX - 36, flagPole.flagY + 16);
+      ctx.lineTo(screenX, flagPole.flagY + 32);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Castle & Princess Peach (Level 2 finish)
+    function drawCastleAndPrincess() {
+      if (castle) {
+        const screenX = castle.x - camera.x;
+        // Main Castle Body
+        ctx.fillStyle = '#b84418';
+        ctx.fillRect(screenX, castle.y, castle.w, castle.h);
+
+        // Battlements
+        const battlementW = 24;
+        for (let bx = 0; bx < castle.w; bx += 36) {
+          ctx.fillRect(screenX + bx, castle.y - 18, battlementW, 18);
+        }
+
+        // Tower in the middle
+        ctx.fillRect(screenX + 50, castle.y - 50, 80, 50);
+        for (let tbx = 0; tbx < 80; tbx += 28) {
+          ctx.fillRect(screenX + 50 + tbx, castle.y - 66, 18, 16);
+        }
+
+        // Castle Doorway
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(screenX + castle.w / 2, castle.y + castle.h - 50, 26, Math.PI, 0);
+        ctx.lineTo(screenX + castle.w / 2 + 26, castle.y + castle.h);
+        ctx.lineTo(screenX + castle.w / 2 - 26, castle.y + castle.h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Flag on castle
+        ctx.fillStyle = '#e52521';
+        ctx.fillRect(screenX + castle.w / 2 - 2, castle.y - 95, 4, 30);
+        ctx.beginPath();
+        ctx.moveTo(screenX + castle.w / 2 + 2, castle.y - 95);
+        ctx.lineTo(screenX + castle.w / 2 + 28, castle.y - 83);
+        ctx.lineTo(screenX + castle.w / 2 + 2, castle.y - 71);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      if (princess) {
+        const screenX = princess.x - camera.x;
+        // Princess Peach Drawing
+        ctx.save();
+        ctx.translate(screenX, princess.y);
+
+        // Blonde Hair
+        ctx.fillStyle = '#ffd13b';
+        ctx.beginPath();
+        ctx.arc(14, 10, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(5, 12, 18, 18);
+
+        // Face
+        ctx.fillStyle = '#fed09b';
+        ctx.fillRect(8, 7, 12, 10);
+        // Eyes
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(11, 10, 2, 3);
+        ctx.fillRect(16, 10, 2, 3);
+        // Smile
+        ctx.fillStyle = '#e11d48';
+        ctx.fillRect(13, 14, 3, 1.5);
+
+        // Crown
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.moveTo(7, 4);
+        ctx.lineTo(9, 0);
+        ctx.lineTo(14, 3);
+        ctx.lineTo(19, 0);
+        ctx.lineTo(21, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(13, 2, 2, 2);
+
+        // Pink Dress
+        ctx.fillStyle = '#f472b6';
+        ctx.beginPath();
+        ctx.moveTo(10, 18);
+        ctx.lineTo(18, 18);
+        ctx.lineTo(26, 46);
+        ctx.lineTo(2, 46);
+        ctx.closePath();
+        ctx.fill();
+
+        // Dress bustle & amulet
+        ctx.fillStyle = '#ec4899';
+        ctx.fillRect(4, 34, 20, 4);
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(14, 21, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Floating Heart animation
+        const heartY = -12 + Math.sin(performance.now() * 0.005) * 6;
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('💖', 6, heartY);
+
+        ctx.restore();
+      }
+    }
+
+    // Goombas (patrolling mushrooms)
+    function drawGoombas() {
+      goombas.forEach(g => {
+        const screenX = g.x - camera.x;
+        if (screenX < -50 || screenX > canvas.width + 50) return;
+
+        if (!g.alive) {
+          // Squished Goomba
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(screenX, g.y + 22, g.w, 10);
+          ctx.fillStyle = '#fed09b';
+          ctx.fillRect(screenX + 6, g.y + 20, g.w - 12, 6);
+          return;
+        }
+
+        // Mushroom Cap
+        ctx.fillStyle = '#854d0e';
+        ctx.beginPath();
+        ctx.arc(screenX + g.w / 2, g.y + 12, 14, Math.PI, 0);
+        ctx.lineTo(screenX + g.w, g.y + 22);
+        ctx.lineTo(screenX, g.y + 22);
+        ctx.closePath();
+        ctx.fill();
+
+        // Face & Body
+        ctx.fillStyle = '#fed09b';
+        ctx.fillRect(screenX + 6, g.y + 14, g.w - 12, 12);
+
+        // Angry Eyes
+        ctx.fillStyle = '#000';
+        ctx.fillRect(screenX + 8, g.y + 15, 3, 6);
+        ctx.fillRect(screenX + g.w - 11, g.y + 15, 3, 6);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(screenX + 9, g.y + 16, 2, 2);
+        ctx.fillRect(screenX + g.w - 10, g.y + 16, 2, 2);
+
+        // Feet (waddling animation)
+        const walkCycle = Math.sin(performance.now() * 0.012);
+        ctx.fillStyle = '#000';
+        if (walkCycle > 0) {
+          ctx.fillRect(screenX + 2, g.y + 26, 9, 6);
+          ctx.fillRect(screenX + g.w - 10, g.y + 24, 9, 6);
+        } else {
+          ctx.fillRect(screenX + 2, g.y + 24, 9, 6);
+          ctx.fillRect(screenX + g.w - 10, g.y + 26, 9, 6);
+        }
+      });
+    }
+
+    // Mario Pixel Character
+    function drawMario() {
+      // Blinking when invulnerable
+      if (mario.invulnerableTimer > 0 && Math.floor(performance.now() / 80) % 2 === 0) {
+        return;
+      }
+
+      ctx.save();
+      const screenX = mario.x - camera.x;
+      ctx.translate(screenX + mario.w / 2, mario.y + mario.h / 2);
+
+      if (mario.facing === 'left') {
+        ctx.scale(-1, 1);
+      }
+
+      // Draw Mario relative to center
+      const ox = -mario.w / 2;
+      const oy = -mario.h / 2;
+
+      // Red Cap
+      ctx.fillStyle = '#e52521';
+      ctx.fillRect(ox + 6, oy, 18, 8);
+      ctx.fillRect(ox + 10, oy + 4, 16, 4);
+
+      // Hair & Sideburns
+      ctx.fillStyle = '#5c2000';
+      ctx.fillRect(ox + 4, oy + 8, 8, 6);
+      ctx.fillRect(ox + 6, oy + 12, 4, 6);
+
+      // Face
+      ctx.fillStyle = '#fed09b';
+      ctx.fillRect(ox + 10, oy + 8, 14, 10);
+      // Nose
+      ctx.fillRect(ox + 20, oy + 10, 6, 4);
+      // Eye
+      ctx.fillStyle = '#000';
+      ctx.fillRect(ox + 16, oy + 8, 2, 4);
+      // Mustache
+      ctx.fillStyle = '#5c2000';
+      ctx.fillRect(ox + 14, oy + 14, 12, 4);
+
+      // Body / Overalls
+      if (!mario.grounded) {
+        // Jumping Pose (arm in the air!)
+        ctx.fillStyle = '#e52521'; // red sleeve up
+        ctx.fillRect(ox + 20, oy - 2, 6, 8);
+        ctx.fillStyle = '#fed09b'; // fist
+        ctx.fillRect(ox + 21, oy - 6, 6, 6);
+
+        // Blue Overalls
+        ctx.fillStyle = '#0028e0';
+        ctx.fillRect(ox + 6, oy + 18, 16, 12);
+        // Yellow buttons
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(ox + 10, oy + 20, 2, 2);
+
+        // Legs split
+        ctx.fillStyle = '#0028e0';
+        ctx.fillRect(ox + 2, oy + 26, 8, 6);
+        ctx.fillRect(ox + 18, oy + 24, 8, 6);
+
+        // Shoes
+        ctx.fillStyle = '#5c2000';
+        ctx.fillRect(ox + 0, oy + 32, 10, 6);
+        ctx.fillRect(ox + 18, oy + 30, 10, 6);
+      } else if (Math.abs(mario.vx) > 0.2) {
+        // Running Animation (alternating frames)
+        const frame = Math.floor(mario.walkFrame) % 3;
+
+        ctx.fillStyle = '#e52521';
+        ctx.fillRect(ox + 8, oy + 18, 14, 6);
+
+        // Overalls
+        ctx.fillStyle = '#0028e0';
+        ctx.fillRect(ox + 6, oy + 20, 16, 10);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(ox + 12, oy + 22, 2, 2);
+
+        // Moving legs
+        ctx.fillStyle = '#0028e0';
+        if (frame === 0) {
+          ctx.fillRect(ox + 4, oy + 28, 8, 6);
+          ctx.fillRect(ox + 16, oy + 26, 8, 6);
+          ctx.fillStyle = '#5c2000';
+          ctx.fillRect(ox + 2, oy + 32, 10, 6);
+          ctx.fillRect(ox + 16, oy + 30, 10, 6);
+        } else if (frame === 1) {
+          ctx.fillRect(ox + 8, oy + 28, 12, 6);
+          ctx.fillStyle = '#5c2000';
+          ctx.fillRect(ox + 8, oy + 32, 14, 6);
+        } else {
+          ctx.fillRect(ox + 16, oy + 28, 8, 6);
+          ctx.fillRect(ox + 4, oy + 26, 8, 6);
+          ctx.fillStyle = '#5c2000';
+          ctx.fillRect(ox + 16, oy + 32, 10, 6);
+          ctx.fillRect(ox + 2, oy + 30, 10, 6);
+        }
+      } else {
+        // Standing Pose
+        ctx.fillStyle = '#e52521';
+        ctx.fillRect(ox + 8, oy + 18, 14, 6);
+
+        // Overalls
+        ctx.fillStyle = '#0028e0';
+        ctx.fillRect(ox + 6, oy + 20, 16, 12);
+        ctx.fillStyle = '#facc15';
+        ctx.fillRect(ox + 10, oy + 22, 2, 2);
+
+        // Legs
+        ctx.fillStyle = '#0028e0';
+        ctx.fillRect(ox + 6, oy + 30, 6, 4);
+        ctx.fillRect(ox + 16, oy + 30, 6, 4);
+
+        // Shoes
+        ctx.fillStyle = '#5c2000';
+        ctx.fillRect(ox + 4, oy + 32, 10, 6);
+        ctx.fillRect(ox + 15, oy + 32, 10, 6);
+      }
+
+      ctx.restore();
+    }
+
+    // Floating Score Popups & Sparkle Particles
+    function drawParticles() {
+      // Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2; // gravity
+        p.alpha -= 0.02;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - camera.x, p.y, p.size, p.size);
+        ctx.restore();
+      }
+
+      // Score Text Popups (+100 ⭐)
+      for (let i = scorePopups.length - 1; i >= 0; i--) {
+        const sp = scorePopups[i];
+        sp.y += sp.vy;
+        sp.alpha -= 0.015;
+
+        if (sp.alpha <= 0) {
+          scorePopups.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = sp.alpha;
+        ctx.font = 'bold 18px "Rubik", "Fredoka", sans-serif';
+        ctx.fillStyle = sp.color || '#fde047';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        const sx = sp.x - camera.x;
+        ctx.strokeText(sp.text, sx, sp.y);
+        ctx.fillText(sp.text, sx, sp.y);
+        ctx.restore();
+      }
+    }
+
+    function addSparkles(x, y, color = '#fcd116') {
+      for (let i = 0; i < 16; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: -Math.random() * 6 - 2,
+          size: Math.random() * 5 + 3,
+          color: color,
+          alpha: 1
+        });
+      }
+    }
+
+    function addScorePopup(x, y, text, color = '#fcd116') {
+      scorePopups.push({
+        x: x,
+        y: y,
+        vy: -1.4,
+        text: text,
+        color: color,
+        alpha: 1
+      });
+    }
+
+    // --- FİZİK VE GÜNCELLEME DÖNGÜSÜ ---
+    function updatePhysics() {
+      if (STATE.paused || STATE.inQuestion) return;
+
+      // Horizontal movement
+      if (keys.left) {
+        mario.vx = -mario.speed;
+        mario.facing = 'left';
+        mario.walkFrame += 0.25;
+      } else if (keys.right) {
+        mario.vx = mario.speed;
+        mario.facing = 'right';
+        mario.walkFrame += 0.25;
+      } else {
+        mario.vx *= 0.65;
+        if (Math.abs(mario.vx) < 0.1) mario.vx = 0;
+      }
+
+      // Jumping
+      if (keys.up && mario.grounded) {
+        mario.vy = mario.jumpForce;
+        mario.grounded = false;
+        sound.playJump();
+      }
+
+      // Gravity
+      mario.vy += 0.55;
+      if (mario.vy > 12) mario.vy = 12;
+
+      // Update X position
+      mario.x += mario.vx;
+
+      // Clamp Mario X
+      if (mario.x < 0) mario.x = 0;
+      if (mario.x > levelWidth - mario.w) mario.x = levelWidth - mario.w;
+
+      // Horizontal Collisions with Blocks & Pipes
+      const solidColliders = [
+        ...blocks.map(b => ({ x: b.x, y: b.y + (b.bumpY || 0), w: b.w, h: b.h, obj: b })),
+        ...pipes.map(p => ({ x: p.x, y: p.y, w: p.w, h: p.h, obj: p }))
+      ];
+
+      for (const col of solidColliders) {
+        if (checkAABB(mario, col)) {
+          if (mario.vx > 0) {
+            mario.x = col.x - mario.w;
+          } else if (mario.vx < 0) {
+            mario.x = col.x + col.w;
+          }
+          mario.vx = 0;
+        }
+      }
+
+      // Update Y position
+      mario.y += mario.vy;
+      mario.grounded = false;
+
+      // Vertical Collisions with Ground
+      const groundY = 430;
+      if (mario.y + mario.h >= groundY) {
+        mario.y = groundY - mario.h;
+        mario.vy = 0;
+        mario.grounded = true;
+      }
+
+      // Vertical Collisions with Blocks & Pipes
+      for (const col of solidColliders) {
+        if (checkAABB(mario, col)) {
+          if (mario.vy > 0) {
+            // Landing on top of a block/pipe
+            mario.y = col.y - mario.h;
+            mario.vy = 0;
+            mario.grounded = true;
+          } else if (mario.vy < 0) {
+            // HITTING A BLOCK FROM UNDERNEATH WITH HEAD!
+            mario.y = col.y + col.h;
+            mario.vy = 1;
+
+            if (col.obj) {
+              // Trigger block bounce
+              col.obj.bumpY = -12;
+              setTimeout(() => { if (col.obj) col.obj.bumpY = 0; }, 160);
+
+              if (col.obj.type === 'question') {
+                if (!col.obj.solved) {
+                  // Hit question block -> Trigger Math Question!
+                  sound.playBump();
+                  openQuestionModal(col.obj);
+                  break;
+                } else {
+                  sound.playBump();
+                }
+              } else if (col.obj.type === 'brick') {
+                sound.playBump();
+                addSparkles(col.x + col.w / 2, col.y, '#b84418');
+              }
+            }
+          }
+        }
+      }
+
+      // Block bump spring physics decay
+      blocks.forEach(b => {
+        if (b.bumpY && b.bumpY < 0) {
+          b.bumpY += 1.5;
+          if (b.bumpY > 0) b.bumpY = 0;
+        }
+      });
+
+      // Invulnerability timer
+      if (mario.invulnerableTimer > 0) {
+        mario.invulnerableTimer--;
+      }
+
+      // Update Goombas
+      goombas.forEach(g => {
+        if (!g.alive) {
+          g.squishTimer++;
+          return;
+        }
+
+        g.x += g.vx;
+
+        // Check pipes reverse
+        pipes.forEach(p => {
+          if (checkAABB(g, p)) {
+            g.vx = -g.vx;
+            if (g.vx > 0) g.x = p.x + p.w + 1;
+            else g.x = p.x - g.w - 1;
+          }
+        });
+
+        // Mario stomping Goomba vs Goomba hurting Mario
+        if (checkAABB(mario, g) && mario.invulnerableTimer <= 0) {
+          // If Mario is falling onto Goomba top
+          if (mario.vy > 0 && mario.y + mario.h - mario.vy <= g.y + 16) {
+            // Stomp success!
+            g.alive = false;
+            mario.vy = -7.5; // bounce Mario up
+            sound.playStomp();
+            STATE.score += 50;
+            addScorePopup(g.x, g.y, '+50 ⭐', '#38bdf8');
+            addSparkles(g.x + g.w / 2, g.y + g.h / 2, '#854d0e');
+            updateHUD();
+          } else {
+            // Mario takes damage
+            takeDamage();
+          }
+        }
+      });
+
+      // Level 1: Flagpole collision
+      if (flagPole && !flagPole.reached) {
+        if (mario.x + mario.w >= flagPole.x && mario.x <= flagPole.x + 20) {
+          flagPole.reached = true;
+          sound.playFanfare();
+          STATE.score += 200;
+          addScorePopup(mario.x, mario.y, '+200 ⭐', '#4ade80');
+          updateHUD();
+        }
+      }
+
+      // Level 1: Pipe Exit transition
+      if (STATE.currentLevel === 1) {
+        const exitPipe = pipes.find(p => p.isExit);
+        if (exitPipe && mario.x > exitPipe.x + 10 && mario.x < exitPipe.x + exitPipe.w - 10 && mario.y + mario.h <= exitPipe.y + 2) {
+          // Level 1 Complete! Show transition modal
+          STATE.paused = true;
+          document.getElementById('lvl-score').textContent = STATE.score;
+          document.getElementById('lvl-lives').textContent = '❤️'.repeat(STATE.lives);
+          document.getElementById('level-complete-modal').classList.remove('hidden');
+          sound.playFanfare();
+        }
+      }
+
+      // Level 2: Reach Princess Peach
+      if (STATE.currentLevel === 2 && princess && !princess.rescued) {
+        if (mario.x + mario.w >= princess.x - 10) {
+          princess.rescued = true;
+          checkGameEnd();
+        }
+      }
+
+      // Camera Follow Mario
+      camera.x = mario.x - canvas.width * 0.35;
+      if (camera.x < 0) camera.x = 0;
+      if (camera.x > levelWidth - canvas.width) camera.x = levelWidth - canvas.width;
+    }
+
+    // AABB Bounding Box collision checker
+    function checkAABB(r1, r2) {
+      return (
+        r1.x < r2.x + r2.w &&
+        r1.x + r1.w > r2.x &&
+        r1.y < r2.y + r2.h &&
+        r1.y + r1.h > r2.y
+      );
+    }
+
+    // Take Damage mechanic
+    function takeDamage() {
+      STATE.lives--;
+      mario.invulnerableTimer = 90; // 1.5 seconds invulnerability
+      sound.playWrong();
+      addScorePopup(mario.x, mario.y, '-1 ❤️', '#ef4444');
+      updateHUD();
+
+      if (STATE.lives <= 0) {
+        triggerGameOver("Canların tükendi! Prensesi kurtarmak için tekrar dene.");
+      }
+    }
+
+    // Trigger Game Over
+    function triggerGameOver(reasonText) {
+      STATE.paused = true;
+      STATE.gameOver = true;
+      document.getElementById('gameover-title').textContent = "Game Over - Prensesi Kurtarmak İçin Tekrar Dene!";
+      document.getElementById('gameover-msg').textContent = reasonText || "Prensesi kurtarmak için en az 1000 puana ve yeterli cana sahip olmalısın. Tekrar dene!";
+      document.getElementById('gov-score').textContent = STATE.score;
+      document.getElementById('gameover-modal').classList.remove('hidden');
+      sound.playWrong();
+    }
+
+    // Check Game End Condition at Castle
+    function checkGameEnd() {
+      STATE.paused = true;
+      if (STATE.score >= 1000) {
+        // VICTORY!
+        STATE.won = true;
+        sound.playFanfare();
+        document.getElementById('vic-score').textContent = STATE.score;
+        document.getElementById('vic-correct').textContent = `${STATE.correctCount} / ${STATE.totalAnswered}`;
+        const pct = STATE.totalAnswered > 0 ? Math.round((STATE.correctCount / STATE.totalAnswered) * 100) : 100;
+        document.getElementById('vic-percent').textContent = `%${pct}`;
+        document.getElementById('victory-modal').classList.remove('hidden');
+
+        // Confetti burst
+        addSparkles(canvas.width / 2 + camera.x, 200, '#f43f5e');
+        addSparkles(canvas.width / 2 + camera.x, 200, '#fde047');
+      } else {
+        // Score under 1000: Game Over
+        triggerGameOver(`Kaleye ulaştın fakat puanın ${STATE.score} ⭐. Prensesi kurtarmak için en az 1000 puan toplamalısın! Daha fazla '?' bloğu çözmeyi dene.`);
+      }
+    }
+
+    // --- MATEMATİK SORU POPUP DİYALOGU ---
+    let currentActiveBlock = null;
+
+    function openQuestionModal(block) {
+      currentActiveBlock = block;
+      STATE.inQuestion = true;
+      const q = block.questionData;
+
+      document.getElementById('modal-level-badge').textContent = q.title;
+      document.getElementById('modal-math').textContent = q.math;
+      document.getElementById('modal-prompt').textContent = q.prompt;
+
+      const fb = document.getElementById('modal-feedback');
+      fb.className = 'feedback-box hidden';
+      fb.innerHTML = '';
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      q.options.forEach((opt) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.textContent = opt;
+        btn.onclick = () => handleAnswer(opt, btn, q, block);
+        container.appendChild(btn);
+      });
+
+      document.getElementById('question-modal').classList.remove('hidden');
+    }
+
+    function handleAnswer(selectedOption, clickedBtn, q, block) {
+      const allBtns = document.querySelectorAll('.btn-option');
+      allBtns.forEach(b => b.disabled = true);
+
+      STATE.totalAnswered++;
+      const fb = document.getElementById('modal-feedback');
+      fb.classList.remove('hidden');
+
+      if (selectedOption === q.correctOption) {
+        // CORRECT ANSWER!
+        STATE.correctCount++;
+        clickedBtn.classList.add('correct');
+        const pointsAdded = q.level === 1 ? 100 : 150;
+        STATE.score += pointsAdded;
+        block.solved = true;
+
+        sound.playCorrect();
+        fb.className = 'feedback-box correct';
+        fb.innerHTML = `<span>🎉</span> <span>${q.explanation} <b>(+${pointsAdded} Puan!)</b></span>`;
+
+        // Mario small jump celebration
+        mario.vy = -6;
+
+        addScorePopup(block.x, block.y - 10, `+${pointsAdded} ⭐`, '#fde047');
+        addSparkles(block.x + block.w / 2, block.y, '#fde047');
+
+        updateHUD();
+
+        setTimeout(() => {
+          closeQuestionModal();
+        }, 1400);
+
+      } else {
+        // WRONG ANSWER!
+        clickedBtn.classList.add('wrong');
+        sound.playWrong();
+
+        // Highlight correct option
+        allBtns.forEach(btn => {
+          if (btn.textContent.trim() === q.correctOption.trim()) {
+            btn.classList.add('correct');
+          }
+        });
+
+        STATE.lives--;
+        addScorePopup(block.x, block.y - 10, `-1 ❤️`, '#ef4444');
+        updateHUD();
+
+        fb.className = 'feedback-box wrong';
+        fb.innerHTML = `<span>❌</span> <span>Yanlış! Doğru cevap: <b>${q.correctOption}</b> (1 Can Kaybedildi)</span>`;
+
+        setTimeout(() => {
+          closeQuestionModal();
+          if (STATE.lives <= 0) {
+            triggerGameOver("3 canın tükendi! Prensesi kurtarmak için tekrar dene.");
+          }
+        }, 1800);
+      }
+    }
+
+    function closeQuestionModal() {
+      document.getElementById('question-modal').classList.add('hidden');
+      STATE.inQuestion = false;
+    }
+
+    // --- ANA OYUN DÖNGÜSÜ (RENDER & LOOP) ---
+    function gameLoop() {
+      // Clear canvas with retro sky blue
+      ctx.fillStyle = '#5c94fc';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw World Elements
+      drawScenery();
+      drawGround();
+      drawPipes();
+      drawBlocks();
+      drawFlagPole();
+      drawCastleAndPrincess();
+      drawGoombas();
+      drawMario();
+      drawParticles();
+
+      // Step Physics
+      updatePhysics();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // --- KLAVYE VE KONTROL DİNLEYİCİLERİ ---
+    window.addEventListener('keydown', e => {
+      sound.init();
+
+      // Modal keyboard answers: 1, 2, 3, 4
+      if (STATE.inQuestion) {
+        if (['1', '2', '3', '4'].includes(e.key)) {
+          const idx = parseInt(e.key) - 1;
+          const btns = document.querySelectorAll('.btn-option');
+          if (btns[idx] && !btns[idx].disabled) {
+            btns[idx].click();
+          }
+        }
+        return;
+      }
+
+      if (['ArrowLeft', 'KeyA', 'a', 'A'].includes(e.code) || ['ArrowLeft', 'a', 'A'].includes(e.key)) {
+        keys.left = true;
+      }
+      if (['ArrowRight', 'KeyD', 'd', 'D'].includes(e.code) || ['ArrowRight', 'd', 'D'].includes(e.key)) {
+        keys.right = true;
+      }
+      if (['ArrowUp', 'KeyW', 'w', 'W', 'Space'].includes(e.code) || ['ArrowUp', 'w', 'W', ' '].includes(e.key)) {
+        keys.up = true;
+        if (e.code === 'Space' || e.key === ' ') e.preventDefault();
+      }
+    });
+
+    window.addEventListener('keyup', e => {
+      if (['ArrowLeft', 'KeyA', 'a', 'A'].includes(e.code) || ['ArrowLeft', 'a', 'A'].includes(e.key)) {
+        keys.left = false;
+      }
+      if (['ArrowRight', 'KeyD', 'd', 'D'].includes(e.code) || ['ArrowRight', 'd', 'D'].includes(e.key)) {
+        keys.right = false;
+      }
+      if (['ArrowUp', 'KeyW', 'w', 'W', 'Space'].includes(e.code) || ['ArrowUp', 'w', 'W', ' '].includes(e.key)) {
+        keys.up = false;
+      }
+    });
+
+    // Touch Controls
+    const btnLeft = document.getElementById('t-left');
+    const btnRight = document.getElementById('t-right');
+    const btnJump = document.getElementById('t-jump');
+
+    const handleTouch = (elem, pressCallback, releaseCallback) => {
+      const start = (e) => { e.preventDefault(); sound.init(); pressCallback(); };
+      const end = (e) => { e.preventDefault(); releaseCallback(); };
+      elem.addEventListener('touchstart', start, { passive: false });
+      elem.addEventListener('touchend', end, { passive: false });
+      elem.addEventListener('mousedown', start);
+      elem.addEventListener('mouseup', end);
+      elem.addEventListener('mouseleave', end);
+    };
+
+    handleTouch(btnLeft, () => { keys.left = true; }, () => { keys.left = false; });
+    handleTouch(btnRight, () => { keys.right = true; }, () => { keys.right = false; });
+    handleTouch(btnJump, () => { keys.up = true; }, () => { keys.up = false; });
+
+    // --- BUTON VE MENÜ ETKİLEŞİMLERİ ---
+    // Start Game
+    document.getElementById('btn-start-game').onclick = () => {
+      sound.init();
+      document.getElementById('start-modal').classList.add('hidden');
+      STATE.paused = false;
+    };
+
+    // Next Level (Level 1 -> Level 2)
+    document.getElementById('btn-next-level').onclick = () => {
+      document.getElementById('level-complete-modal').classList.add('hidden');
+      STATE.currentLevel = 2;
+      buildLevel(2);
+      STATE.paused = false;
+    };
+
+    // Restart on Game Over
+    document.getElementById('btn-restart-gameover').onclick = () => {
+      document.getElementById('gameover-modal').classList.add('hidden');
+      resetGame();
+    };
+
+    // Restart on Victory
+    document.getElementById('btn-restart-victory').onclick = () => {
+      document.getElementById('victory-modal').classList.add('hidden');
+      resetGame();
+    };
+
+    function resetGame() {
+      STATE.score = 0;
+      STATE.lives = 3;
+      STATE.currentLevel = 1;
+      STATE.correctCount = 0;
+      STATE.totalAnswered = 0;
+      STATE.gameOver = false;
+      STATE.won = false;
+      buildLevel(1);
+      STATE.paused = false;
+    }
+
+    // Sound toggle
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.onclick = () => {
+      sound.muted = !sound.muted;
+      btnSound.textContent = sound.muted ? '🔇' : '🔊';
+      if (!sound.muted) sound.playJump();
+    };
+
+    // Download Single-File HTML
+    document.getElementById('btn-download').onclick = () => {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob(['<!DOCTYPE html>\n' + htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'super_mario_8_sinif_matematik.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    // Window Resize Handling for Canvas aspect ratio
+    function handleResize() {
+      const container = document.getElementById('game-container');
+      const w = container.clientWidth;
+      const h = container.clientHeight - 52; // subtract hud
+      canvas.width = 960;
+      canvas.height = 528;
+    }
+    window.addEventListener('resize', handleResize);
+
+    // Initial Setup
+    handleResize();
+    buildLevel(1);
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

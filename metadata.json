@@ -1,0 +1,8 @@
+{
+  "name": "Super Mario: 8. Sınıf Matematik Macerası",
+  "description": "8. sınıf kareköklü sayılar ve tam kare ifadeler temalı Super Mario platform oyunu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
